@@ -1,5 +1,6 @@
 const dummyToken = "qwer1234";
 
+// Mock auth, can be replaces with jwt for real world scenarios.
 const auth = (req) => {
   const requestToken = req.headers["auth"];
 
@@ -9,4 +10,4 @@ const auth = (req) => {
   return true;
 };
 
-module.exports = auth
+module.exports = auth;

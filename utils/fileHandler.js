@@ -8,7 +8,6 @@ const initiate = (eventData) => {
 
 const fileWriter = async (eventData) => {
   var json = await fileReader();
-  console.log(json);
   json.push(eventData);
   const response = fs.writeFileSync("events.json", JSON.stringify(json));
   return response;

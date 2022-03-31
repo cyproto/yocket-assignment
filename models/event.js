@@ -1,10 +1,10 @@
 class Event {
   name = "";
-  startTime = "";
+  start_datetime = "";
   duration = "";
-  constructor(name, startTime, duration) {
+  constructor(name, start_datetime, duration) {
     this.name = name;
-    this.startTime = startTime;
+    this.start_datetime = new Date(start_datetime * 1000);
     this.duration = duration;
   }
 }

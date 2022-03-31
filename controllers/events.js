@@ -1,32 +1,57 @@
-const { fileReader, fileWriter } = require("../utils/fileHandler");
-
+const dbClient = require("../utils/dbconnection");
 const getEvents = async () => {
-  return fileReader().then((res) => {
-    const response = {
-      upcoming: [],
-      live: [],
-    };
-    res.forEach((event) => {
-      var date1 = new Date(),
-        date2 = new Date(date1);
-      date2.setMinutes(date1.getMinutes() + 10);
+  const cursor = await dbClient();
+  if (!cursor) {
+    return [];
+  }
 
-      if (
-        event.startTime >= new Date().getTime() &&
-        event.startTime <= date2.getTime()
-      ) {
-        response.live.push(event);
-      } else if (event.startTime >= new Date().getTime()) {
-        response.upcoming.push(event);
-      }
-    });
+  // This ideally should be inside the events model class, which can extend a generic query generator class, which in turn will generate and execute the query for us.
+  const res = await cursor.query("SELECT * from events", []);
+  const response = {
+    upcoming: [],
+    live: [],
+  };
 
+  cursor.end();
+  if (!res) {
     return response;
+  }
+  res.rows.forEach((event) => {
+    var date1 = new Date(),
+      date2 = new Date(date1);
+    date2.setMinutes(date1.getMinutes() + 10);
+    if (
+      new Date(event.start_datetime).getTime() >= new Date().getTime() &&
+      new Date(event.start_datetime).getTime() <= date2.getTime()
+    ) {
+      response.live.push(event);
+    } else if (
+      new Date(event.start_datetime).getTime() >= new Date().getTime()
+    ) {
+      response.upcoming.push(event);
+    }
   });
+  return response;
 };
 
 const createEvent = async (event) => {
-  return fileWriter(event).then((res) => res);
+  const cursor = await dbClient();
+  if (!cursor) {
+    return [];
+  }
+
+  // This ideally should be inside the events model class, which can extend a generic query generator class, which in turn will generate and execute the query for us.
+  cursor.query(
+    "INSERT INTO events(name, start_datetime, duration) values($1, $2, $3) returning id",
+    [event.name, event.start_datetime, event.duration],
+    (err, res) => {
+      cursor.end();
+      if (err) {
+        return false;
+      }
+      return res.rows[0].id;
+    }
+  );
 };
 
 module.exports = {
